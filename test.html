@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RRB Exam Portal (Ready for Content)</title>
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f6; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .hidden { display: none !important; }
+        
+        /* --- LOGIN --- */
+        #login-screen { display: flex; height: 100%; justify-content: center; align-items: center; background: linear-gradient(135deg, #005b96, #003366); }
+        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 300px; text-align: center; }
+        .login-box h2 { margin-top: 0; color: #005b96; }
+        .login-box input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        .btn-primary { background: #005b96; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
+        
+        /* --- DASHBOARD --- */
+        #dashboard-screen { display: flex; flex-direction: column; height: 100%; background: #f4f7f6; }
+        .dash-header { background: white; padding: 15px 30px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .profile-icon { width: 40px; height: 40px; background: #005b96; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; transition: 0.2s; }
+        .profile-icon:hover { background: #004470; transform: scale(1.1); }
+        .dash-container { padding: 30px; flex: 1; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; gap: 30px; flex-wrap: wrap; }
+        .category-card { background: white; width: 250px; padding: 30px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid #005b96; }
+        .category-card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .cat-icon { font-size: 50px; margin-bottom: 15px; display: block; }
+
+        /* --- PROFILE --- */
+        #profile-screen { display: flex; flex-direction: column; height: 100%; background: #f4f7f6; }
+        .profile-container { max-width: 600px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%; overflow-y: auto; }
+        .section-title { font-size: 18px; font-weight: bold; color: #005b96; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; margin-top: 20px; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; }
+        .contact-box { background: #f0f8ff; padding: 15px; border-radius: 5px; border: 1px solid #b8daff; margin-bottom: 10px; }
+        .comment-box { width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; margin-top: 10px; font-family: inherit; }
+        .btn-send { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; float: right; }
+
+        /* --- TEST LIST --- */
+        #test-list-screen { display: flex; flex-direction: column; height: 100%; background: #f4f7f6; }
+        .list-header { padding: 20px 30px; background: white; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 15px; }
+        .list-container { padding: 30px; flex: 1; overflow-y: auto; }
+        .test-row { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #28a745; }
+        .btn-back { background: #eee; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .btn-attempt { background: #28a745; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        /* --- GUIDELINES SCREEN --- */
+        #guidelines-screen { display: flex; flex-direction: column; height: 100%; background: #f4f7f6; }
+        .guide-container { max-width: 800px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%; overflow-y: auto; }
+        .lang-select { padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 20px; font-size: 16px; }
+        .rules-box { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .rules-box h3 { margin-top: 0; color: #005b96; }
+        .rules-box ul { padding-left: 20px; line-height: 1.6; }
+        .color-legend { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+        .l-box { width: 20px; height: 20px; border-radius: 4px; }
+        .btn-agree { background: #005b96; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; font-size: 16px; float: right; opacity: 0.5; pointer-events: none; }
+        .btn-agree.active { opacity: 1; pointer-events: all; }
+
+        /* --- INSTRUCTIONS --- */
+        #instruction-screen { display: flex; height: 100%; justify-content: center; align-items: center; background: white; flex-direction: column; text-align: center; }
+        .count-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid #005b96; display: flex; justify-content: center; align-items: center; font-size: 50px; font-weight: bold; color: #005b96; margin: 20px; }
+
+        /* --- EXAM INTERFACE --- */
+        #exam-screen { display: flex; flex-direction: column; height: 100%; }
+        .header { background: #005b96; color: white; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; height: 50px; flex-shrink: 0; }
+        .timer { background: black; padding: 5px 15px; border-radius: 4px; color: #00ff00; font-family: monospace; font-size: 16px; font-weight: bold; }
+        
+        .container { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 50px); }
+        .question-side { flex: 3; display: flex; flex-direction: column; border-right: 2px solid #ccc; background: white; position: relative; }
+        .question-area { flex: 1; padding: 25px; overflow-y: auto; }
+        .footer { background: white; padding: 10px 20px; border-top: 2px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
+
+        .sidebar { flex: 1; background: #eef1f5; padding: 10px; min-width: 260px; overflow-y: auto; height: 100%; display: flex; flex-direction: column; }
+        .sidebar-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #ccc; }
+
+        /* LOADER (For 0.5s Delay) */
+        .loader-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 50; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #005b96; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.5s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .stats-panel { background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; }
+        .stat-item { display: flex; align-items: center; gap: 8px; }
+        .stat-box { width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; border-radius: 4px; font-size: 14px; }
+        
+        .s-ans { background: #28a745; } .s-not-ans { background: #dc3545; } .s-not-vis { background: #ccc; color: black; } 
+        .s-rev { background: #6f42c1; } .s-rev-ans { background: #6f42c1; position: relative; } 
+        .s-rev-ans::after { content: '✔'; position: absolute; font-size: 8px; bottom: 2px; right: 2px; background: #28a745; width: 10px; height: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+        .options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .options label { display: flex; align-items: center; background: #f8f9fa; padding: 15px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; transition: 0.2s; width: 100%; box-sizing: border-box; }
+        .options label:hover { background: #e9ecef; border-color: #adb5bd; }
+        .options input { margin-right: 15px; width: 20px; height: 20px; }
+        
+        .btn { padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; color: white; border-radius: 4px; font-size: 14px; }
+        .btn-save { background: #28a745; } .btn-review { background: #6f42c1; } .btn-clear { background: #ffc107; color: black; } 
+        .btn-final-submit { width: 100%; background: #dc3545; color: white; padding: 12px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 16px; }
+        .btn-final-submit:hover { background: #c82333; }
+
+        .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 10px 0; }
+        .p-btn { height: 35px; width: 35px; display: flex; align-items: center; justify-content: center; border: 1px solid #999; background: #ccc; color:black; font-weight: bold; cursor: pointer; border-radius: 50%; position: relative; }
+        .p-btn.answered { background: #28a745; color: white; border-color: #1e7e34; }
+        .p-btn.visited { background: #dc3545; color: white; border-radius: 0; }
+        .p-btn.review { background: #6f42c1; color: white; border-radius: 50%; }
+        .p-btn.review-ans { background: #6f42c1; color: white; border-radius: 50%; }
+        .p-btn.review-ans::after { content: '✔'; position: absolute; bottom: -2px; right: -2px; background: #28a745; color: white; font-size: 10px; width: 12px; height: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid white; }
+        .p-btn.current { border: 2px solid blue; box-shadow: 0 0 0 2px #8daeff; transform: scale(1.1); z-index: 10; }
+
+        /* --- RESULT --- */
+        #result-screen { background: #f4f7f6; height: 100%; flex-direction: column; align-items: center; justify-content: center; display: none; }
+        .result-card { background: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 400px; }
+        .stat-row { display: flex; justify-content: space-between; margin: 8px 0; border-bottom: 1px solid #eee; }
+
+        /* --- SOLUTIONS --- */
+        #solutions-screen { display: none; background: #f4f7f6; height: 100%; flex-direction: column; }
+        .sol-header { width:100%; background:#333; color:white; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; box-sizing: border-box; }
+        .sol-container { flex:1; overflow-y:auto; width:100%; padding:20px; max-width:800px; margin: 0 auto; }
+        .sol-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .status-badge { position: absolute; top: 10px; right: 10px; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; }
+        .badge-green { background: #28a745; } .badge-red { background: #dc3545; } .badge-grey { background: #6c757d; }
+        .sol-opt { padding: 10px; margin: 5px 0; border-radius: 4px; border: 1px solid #eee; }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; justify-content: center; align-items: center; flex-direction: column; }
+        .confirm-box { background: white; padding: 25px; border-radius: 8px; text-align: center; width: 300px; }
+        .btn-yes { background: #28a745; color: white; padding: 10px 25px; margin: 5px;}
+        .btn-no { background: #dc3545; color: white; padding: 10px 25px; margin: 5px;}
+
+        .report-box { background: white; padding: 20px; border-radius: 8px; width: 350px; }
+        .report-box h3 { margin-top: 0; color: #dc3545; }
+        .report-box select, .report-box textarea { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>RRB Portal Login</h2>
+            <input type="text" id="uName" placeholder="Full Name">
+            <input type="password" id="uPass" placeholder="Password">
+            <p id="login-error" class="error-msg" style="display:none; color:red;">Wrong Password! (Use: 1234)</p>
+            <button class="btn-primary" onclick="attemptLogin()">Login</button>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="hidden">
+        <div class="dash-header">
+            <div style="font-weight:bold; font-size:18px;">Welcome, <span id="display-name">User</span></div>
+            <div class="profile-icon" onclick="openProfile()" title="My Profile">👤</div>
+        </div>
+        <div class="dash-container">
+            <div class="category-card" onclick="openCategory('JE')">
+                <span class="cat-icon">⚡</span>
+                <div class="cat-title">RRB JE</div>
+            </div>
+            <div class="category-card" onclick="openCategory('GD')">
+                <span class="cat-icon">🚂</span>
+                <div class="cat-title">RRB Group D</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-screen" class="hidden">
+        <div class="list-header">
+            <button class="btn-back" onclick="switchScreen('dashboard-screen')">← Back to Home</button>
+            <h2 style="margin:0; font-size:20px;">User Profile & Support</h2>
+        </div>
+        <div class="profile-container">
+            <div class="section-title">My Profile Details</div>
+            <div class="info-row"><span>Name:</span> <b id="prof-name">User</b></div>
+            <div class="info-row"><span>User ID:</span> <b>RRB-2025-WB</b></div>
+            <div class="info-row"><span>Role:</span> <b>Student (Aspirant)</b></div>
+
+            <div class="section-title">Contact Us</div>
+            <div class="contact-box">
+                <b>📞 Phone:</b> +91 8116129622<br>
+                <b>📧 Email:</b> Shibasisgorain@Gmail.com
+            </div>
+            
+            <div>
+                <label style="font-weight:bold; font-size:14px;">Have a query? Leave a comment:</label>
+                <textarea class="comment-box" id="user-comment" placeholder="Type your message here..."></textarea>
+                <button class="btn-send" onclick="sendMessage()">Send Message</button>
+            </div>
+            <div style="clear:both; padding-top:20px; text-align:center;">
+                <button onclick="doLogout()" style="color:red; background:none; border:none; cursor:pointer; text-decoration:underline;">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="test-list-screen" class="hidden">
+        <div class="list-header">
+            <button class="btn-back" onclick="switchScreen('dashboard-screen')">← Back</button>
+            <h2 style="margin:0; font-size:20px;">Select Test</h2>
+        </div>
+        <div class="list-container" id="test-list-container"></div>
+    </div>
+
+    <div id="guidelines-screen" class="hidden">
+        <div class="list-header">
+            <button class="btn-back" onclick="switchScreen('test-list-screen')">← Cancel</button>
+            <h2 style="margin:0; font-size:20px;">Instructions & Language</h2>
+        </div>
+        <div class="guide-container">
+            <label><b>Select Language:</b></label>
+            <select id="lang-selector" class="lang-select">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+            </select>
+
+            <div class="rules-box">
+                <h3>General Instructions</h3>
+                <ul>
+                    <li>Total marks and duration vary by test type.</li>
+                    <li>There is <b>1/3 Negative Marking</b> for every wrong answer.</li>
+                    <li>The timer will start automatically on the next screen.</li>
+                    <li>Do not refresh the page during the exam.</li>
+                </ul>
+                <div style="margin-top:10px; font-weight:bold;">Color Legend:</div>
+                <div class="color-legend">
+                    <div class="legend-item"><div class="l-box s-ans"></div> Answered</div>
+                    <div class="legend-item"><div class="l-box s-not-ans"></div> Not Answered</div>
+                    <div class="legend-item"><div class="l-box s-not-vis"></div> Not Visited</div>
+                    <div class="legend-item"><div class="l-box s-rev"></div> Review</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <input type="checkbox" id="agree-chk" onchange="toggleAgree()"> 
+                <label for="agree-chk">I have read and understood the instructions.</label>
+            </div>
+
+            <button id="btn-start-exam" class="btn-agree" onclick="proceedToExam()">Next</button>
+        </div>
+    </div>
+
+    <div id="instruction-screen" class="hidden">
+        <h2>Read Instructions</h2>
+        <div class="count-circle" id="countdown-display">60</div>
+        <p>Exam will start automatically when timer ends.</p>
+        <button onclick="skipInstructionTimer()" style="margin-top:20px; padding:10px 20px; cursor:pointer; background:#005b96; color:white; border:none; font-size:16px; border-radius:5px;">Skip & Start Now</button>
+    </div>
+
+    <div id="exam-screen" class="hidden">
+        <div class="header">
+            <div style="font-weight: bold;">CBT Mode</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="timer" id="timer">00:00</div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="question-side">
+                <div class="loader-overlay" id="q-loader">
+                    <div class="loader"></div>
+                </div>
+
+                <div class="question-area">
+                    <div style="font-weight: bold; margin-bottom: 10px; color: #555; display:flex; justify-content:space-between; align-items:center;">
+                        <span>Question <span id="q-num">1</span></span>
+                        <span style="color:#dc3545; cursor:pointer; font-size:13px; border:1px solid #dc3545; padding:2px 8px; border-radius:4px;" onclick="openReport()">🚩 Report</span>
+                    </div>
+                    
+                    <div class="q-text" id="q-text">Loading...</div>
+                    <div class="options" id="options"></div>
+                </div>
+                <div class="footer">
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-review" onclick="markReview()">Mark Review</button>
+                        <button class="btn btn-clear" onclick="clearResponse()">Clear</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-save" onclick="saveNext()">Save & Next</button>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar">
+                <div style="text-align: center; padding-bottom: 10px; border-bottom: 1px solid #ddd; margin-bottom: 10px;">
+                    <b id="exam-user-name">User</b>
+                </div>
+                <div class="stats-panel">
+                    <div class="stat-item"><div class="stat-box s-ans" id="cnt-ans">0</div> Answered</div>
+                    <div class="stat-item"><div class="stat-box s-not-ans" id="cnt-not-ans">0</div> Not Answered</div>
+                    <div class="stat-item"><div class="stat-box s-not-vis" id="cnt-not-vis">0</div> Not Visited</div>
+                    <div class="stat-item"><div class="stat-box s-rev" id="cnt-rev">0</div> Mark Review</div>
+                    <div class="stat-item" style="grid-column: span 2;"><div class="stat-box s-rev-ans" id="cnt-rev-ans">0</div> Ans & Mark Review</div>
+                </div>
+                <div class="palette-grid" id="palette"></div>
+                
+                <div class="sidebar-footer">
+                    <button class="btn-final-submit" onclick="showConfirm()">SUBMIT TEST</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-overlay" class="overlay">
+        <div class="confirm-box"><h3>Submit Exam?</h3><button class="btn-no" onclick="closeConfirm()">No</button><button class="btn-yes" onclick="calculateResult()">Yes</button></div>
+    </div>
+
+    <div id="report-overlay" class="overlay">
+        <div class="report-box">
+            <h3>Report Question</h3>
+            <label>Issue Type:</label>
+            <select id="rep-type">
+                <option>Wrong Question</option>
+                <option>Wrong Options</option>
+                <option>Spelling/Formatting</option>
+                <option>Other</option>
+            </select>
+            <label>Description:</label>
+            <textarea id="rep-desc" rows="4" placeholder="Describe the issue..."></textarea>
+            <div style="text-align:right;">
+                <button class="btn-no" onclick="closeReport()">Cancel</button>
+                <button class="btn-yes" onclick="submitReport()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <div class="result-card">
+            <h2 style="color: #005b96;">Score Card</h2>
+            <div class="stat-row"><span>Total Q:</span> <span id="r-total">0</span></div>
+            <div class="stat-row"><span>Correct:</span> <span id="r-cor" style="color:green">0</span></div>
+            <div class="stat-row"><span>Wrong:</span> <span id="r-wrong" style="color:red">0</span></div>
+            <div style="margin: 15px 0; background:#f0f8ff; padding:10px;"><b>SCORE:</b> <span id="r-score" style="font-size:24px; font-weight:bold;">0.00</span></div>
+            
+            <button onclick="viewSolutions()" style="padding:10px; width:100%; background:#17a2b8; color:white; border:none; margin-bottom:10px; cursor:pointer;">View Solutions</button>
+            <button onclick="reattemptTest()" style="padding:10px; width:100%; background:#28a745; color:white; border:none; margin-bottom:10px; cursor:pointer;">Re-Attempt</button>
+            <button onclick="exitToTestList()" style="padding:10px; width:100%; cursor:pointer;">Exit to Test List</button>
+        </div>
+    </div>
+
+    <div id="solutions-screen" class="hidden">
+        <div class="sol-header">
+            <span>Detailed Solutions</span>
+            <button onclick="exitToTestList()" style="background:white; color:black; border:none; padding:5px 10px; cursor:pointer;">Exit</button>
+        </div>
+        <div class="sol-container" id="sol-list"></div>
+    </div>
+
+    <script>
+        // --- 1. DATA ---
+        const QUESTION_BANK = {
+            "JE_SET_1": [
+                { q: "Unit of Current?", opt: ["Volt", "Ampere", "Ohm", "Watt"], ans: 1 },
+                { q: "Ohm's Law?", opt: ["V=IR", "V=I/R", "R=VI", "I=VR"], ans: 0 },
+                { q: "Voltage in Parallel?", opt: ["Same", "Different", "Zero", "Infinite"], ans: 0 },
+                { q: "Frequency of DC?", opt: ["50Hz", "60Hz", "0Hz", "100Hz"], ans: 2 },
+                { q: "Powerhouse of Cell?", opt: ["Nucleus", "Mitochondria", "Ribosome", "Golgi"], ans: 1 },
+                { q: "Electron Charge?", opt: ["Positive", "Negative", "Neutral", "None"], ans: 1 },
+                { q: "Unit of Power?", opt: ["Joule", "Watt", "Newton", "Volt"], ans: 1 },
+                { q: "Hardest Material?", opt: ["Gold", "Diamond", "Iron", "Silver"], ans: 1 },
+                { q: "H2O stands for?", opt: ["Salt", "Water", "Air", "Fire"], ans: 1 },
+                { q: "Sun is a?", opt: ["Planet", "Star", "Satellite", "Comet"], ans: 1 },
+                { q: "Speed of Light?", opt: ["3x10^8", "2x10^8", "3x10^6", "Zero"], ans: 0 },
+                { q: "Unit of Force?", opt: ["Newton", "Joule", "Pascal", "Watt"], ans: 0 },
+                { q: "Sound carrier?", opt: ["Air", "Vacuum", "Space", "None"], ans: 0 },
+                { q: "Human Bones?", opt: ["206", "208", "105", "300"], ans: 0 },
+                { q: "Blood Group Donor?", opt: ["A", "B", "AB", "O"], ans: 3 },
+                { q: "Iron Symbol?", opt: ["Fe", "Ir", "I", "In"], ans: 0 },
+                { q: "Capital of WB?", opt: ["Kolkata", "Delhi", "Mumbai", "Chennai"], ans: 0 },
+                { q: "Boiling point of water?", opt: ["100C", "0C", "50C", "150C"], ans: 0 },
+                { q: "Freezing point?", opt: ["0C", "100C", "-10C", "10C"], ans: 0 },
+                { q: "Largest Planet?", opt: ["Earth", "Mars", "Jupiter", "Saturn"], ans: 2 }
+            ],
+
+            // ==========================================================================
+            //  [AREA 1] PASTE NEW QUESTION SETS BELOW
+            //  Format: "SET_ID": [ {q: "...", opt: ["A","B"], ans: 0}, ... ],
+            // ==========================================================================
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            // ==========================================================================
+        };
+
+        const TEST_DATABASE = {
+            'JE': [
+                { id: 'JE-01', title: 'RRB JE Mock 1', desc: '20 Questions', data_ref: 'JE_SET_1' },
+
+                // ==========================================================================
+                //  [AREA 2] ADD NEW JE EXAMS HERE
+                //  Format: { id: 'JE-02', title: '...', desc: '...', data_ref: 'SET_ID' },
+                // ==========================================================================
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                // ==========================================================================
+            ],
+            'GD': [
+                { id: 'GD-01', title: 'Group D Mock 1', desc: 'Science', data_ref: 'JE_SET_1' },
+                
+                // ==========================================================================
+                //  [AREA 3] ADD NEW GROUP D EXAMS HERE
+                // ==========================================================================
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                //
+                // ==========================================================================
+            ]
+        };
+
+        // --- 2. VARIABLES ---
+        let currentQuestions = [], userAnswers = [], visitedStatus = [], reviewStatus = [];
+        let currentQ = 0, examTimer, instructionInterval, timeLeft = 0, examDuration = 0, currentTestId = "";
+        let userName = "", currentCat = "";
+        let isSwitching = false; // Prevents double clicking
+
+        // --- 3. SESSION ---
+        window.onload = function() {
+            let savedUser = localStorage.getItem("rrb_user");
+            if(savedUser) {
+                userName = savedUser;
+                updateUserDisplay();
+                switchScreen('dashboard-screen');
+            }
+        }
+
+        function updateUserDisplay() {
+            document.getElementById("display-name").innerText = userName;
+            document.getElementById("exam-user-name").innerText = userName;
+            document.getElementById("prof-name").innerText = userName;
+        }
+
+        function attemptLogin() {
+            let p = document.getElementById("uPass").value;
+            if(p === "1234") {
+                userName = document.getElementById("uName").value || "User";
+                localStorage.setItem("rrb_user", userName);
+                updateUserDisplay();
+                switchScreen('dashboard-screen');
+            } else { document.getElementById("login-error").style.display = "block"; }
+        }
+
+        function doLogout() {
+            localStorage.removeItem("rrb_user");
+            location.reload();
+        }
+
+        // --- 4. GUIDELINES & START ---
+        function openGuidelines(testId) {
+            currentTestId = testId;
+            document.getElementById("agree-chk").checked = false;
+            document.getElementById("btn-start-exam").classList.remove("active");
+            switchScreen('guidelines-screen');
+        }
+
+        function toggleAgree() {
+            let chk = document.getElementById("agree-chk");
+            let btn = document.getElementById("btn-start-exam");
+            if(chk.checked) btn.classList.add("active"); else btn.classList.remove("active");
+        }
+
+        function proceedToExam() {
+            startPreExam(currentTestId);
+        }
+
+        function startPreExam(testId) {
+            let testInfo = TEST_DATABASE[currentCat].find(t => t.id === testId);
+            let rawQuestions = QUESTION_BANK[testInfo.data_ref];
+            currentQuestions = JSON.parse(JSON.stringify(rawQuestions));
+            
+            let count = currentQuestions.length;
+            if(count === 10) examDuration = 5 * 60;
+            else if(count === 20) examDuration = 10 * 60;
+            else if(count === 50) examDuration = 45 * 60;
+            else examDuration = count * 60;
+
+            switchScreen('instruction-screen');
+            startInstructionTimer();
+        }
+
+        function startInstructionTimer() {
+            if(instructionInterval) clearInterval(instructionInterval);
+            let c = 60;
+            document.getElementById("countdown-display").innerText = c;
+            instructionInterval = setInterval(() => {
+                c--;
+                document.getElementById("countdown-display").innerText = c;
+                if(c <= 0) skipInstructionTimer();
+            }, 1000);
+        }
+
+        function skipInstructionTimer() {
+            clearInterval(instructionInterval);
+            switchScreen('exam-screen');
+            initExamEngine();
+        }
+
+        // --- 5. EXAM ENGINE (With Delay) ---
+        function initExamEngine() {
+            currentQ = 0;
+            timeLeft = examDuration; 
+            userAnswers = new Array(currentQuestions.length).fill(null);
+            visitedStatus = new Array(currentQuestions.length).fill(false);
+            reviewStatus = new Array(currentQuestions.length).fill(false);
+            
+            document.getElementById("timer").innerText = formatTime(timeLeft);
+            loadQuestion(0, false); // No delay for first question
+            
+            if(examTimer) clearInterval(examTimer);
+            examTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").innerText = formatTime(timeLeft);
+                if(timeLeft <= 0) calculateResult();
+            }, 1000);
+        }
+
+        function loadQuestion(index, withDelay = true) {
+            if(isSwitching) return; // Prevent clicks during load
+            
+            if(withDelay) {
+                isSwitching = true;
+                document.getElementById("q-loader").style.display = "flex"; // Show Loader
+                
+                setTimeout(() => {
+                    renderQuestionDOM(index);
+                    document.getElementById("q-loader").style.display = "none"; // Hide Loader
+                    isSwitching = false;
+                }, 500); // 0.5s Delay
+            } else {
+                renderQuestionDOM(index);
+            }
+        }
+
+        function renderQuestionDOM(index) {
+            currentQ = index; 
+            visitedStatus[index] = true; 
+            
+            document.getElementById("q-num").innerText = index + 1;
+            document.getElementById("q-text").innerText = currentQuestions[index].q;
+            
+            let optHtml = "";
+            currentQuestions[index].opt.forEach((opt, i) => {
+                let checked = userAnswers[index] === i ? "checked" : "";
+                optHtml += `<label onclick="selectOption(${i})"><input type="radio" name="opt" ${checked}> ${opt}</label>`;
+            });
+            document.getElementById("options").innerHTML = optHtml;
+            renderPalette();
+        }
+
+        function renderPalette() {
+            let html = "";
+            let cAns = 0, cNotAns = 0, cNotVis = 0, cRev = 0, cRevAns = 0;
+
+            for(let i=0; i<currentQuestions.length; i++) {
+                let cls = "p-btn";
+                if (!visitedStatus[i]) { cls += ""; cNotVis++; }
+                else if (userAnswers[i] !== null && reviewStatus[i]) { cls += " review-ans"; cRevAns++; }
+                else if (reviewStatus[i]) { cls += " review"; cRev++; }
+                else if (userAnswers[i] !== null) { cls += " answered"; cAns++; }
+                else { cls += " visited"; cNotAns++; }
+
+                if(i === currentQ) cls += " current";
+                html += `<div class="${cls}" onclick="loadQuestion(${i})">${i + 1}</div>`;
+            }
+            document.getElementById("palette").innerHTML = html;
+            
+            document.getElementById("cnt-ans").innerText = cAns;
+            document.getElementById("cnt-not-ans").innerText = cNotAns;
+            document.getElementById("cnt-not-vis").innerText = cNotVis;
+            document.getElementById("cnt-rev").innerText = cRev;
+            document.getElementById("cnt-rev-ans").innerText = cRevAns;
+        }
+
+        // --- BUTTON ACTIONS ---
+        function selectOption(i) { document.querySelectorAll('input[name="opt"]')[i].checked = true; }
+        function saveCurrent() {
+            const sel = document.querySelector('input[name="opt"]:checked');
+            if (sel) {
+                let radios = document.querySelectorAll('input[name="opt"]');
+                for(let i=0; i<radios.length; i++) if(radios[i].checked) userAnswers[currentQ] = i;
+            }
+        }
+        function saveNext() { saveCurrent(); reviewStatus[currentQ] = false; goNext(); }
+        function markReview() { saveCurrent(); reviewStatus[currentQ] = true; goNext(); }
+        function clearResponse() { 
+            userAnswers[currentQ] = null; 
+            reviewStatus[currentQ] = false; 
+            renderQuestionDOM(currentQ); // Immediate update for clear
+        }
+        function goNext() { if(currentQ < currentQuestions.length - 1) loadQuestion(currentQ + 1); else showConfirm(); }
+
+        function formatTime(s) {
+            let m = Math.floor(s/60);
+            let sec = s%60;
+            return `${m}:${sec<10?'0'+sec:sec}`;
+        }
+        function calculateResult() {
+            clearInterval(examTimer); closeConfirm(); switchScreen('result-screen');
+            let correct = 0, wrong = 0;
+            for(let i=0; i<currentQuestions.length; i++) {
+                if(userAnswers[i] !== null) { if(userAnswers[i] === currentQuestions[i].ans) correct++; else wrong++; }
+            }
+            let score = correct - (wrong * 0.33);
+            document.getElementById("r-total").innerText = currentQuestions.length;
+            document.getElementById("r-cor").innerText = correct;
+            document.getElementById("r-wrong").innerText = wrong;
+            document.getElementById("r-score").innerText = score.toFixed(2);
+        }
+
+        // --- NAV & UTILS ---
+        function openProfile() { switchScreen('profile-screen'); }
+        function openCategory(cat) {
+            currentCat = cat;
+            let html = "";
+            TEST_DATABASE[cat].forEach(t => {
+                html += `<div class="test-row"><div><b>${t.title}</b><br>${t.desc}</div><button class="btn-attempt" onclick="openGuidelines('${t.id}')">Start</button></div>`;
+            });
+            document.getElementById("test-list-container").innerHTML = html;
+            switchScreen('test-list-screen');
+        }
+        function switchScreen(id) {
+            document.querySelectorAll('body > div').forEach(d => { if(!d.classList.contains('overlay')) d.classList.add('hidden'); });
+            let el = document.getElementById(id);
+            el.classList.remove('hidden');
+            el.style.display = (id.includes('screen')) ? 'flex' : 'flex';
+        }
+        function showConfirm() { document.getElementById("confirm-overlay").style.display = "flex"; }
+        function closeConfirm() { document.getElementById("confirm-overlay").style.display = "none"; }
+        function exitToTestList() { switchScreen('test-list-screen'); }
+        function reattemptTest() { openGuidelines(currentTestId); } 
+        function sendMessage() { alert("Message Sent!"); }
+
+        function openReport() { document.getElementById("report-overlay").style.display = "flex"; }
+        function closeReport() { document.getElementById("report-overlay").style.display = "none"; }
+        function submitReport() {
+            let type = document.getElementById("rep-type").value;
+            let desc = document.getElementById("rep-desc").value;
+            let qId = currentQuestions[currentQ].q;
+            let reportData = { user: userName, question: qId, issueType: type, description: desc, timestamp: new Date().toISOString() };
+            console.log("Report Saved:", reportData);
+            alert("Report Submitted Successfully!");
+            document.getElementById("rep-desc").value = ""; 
+            closeReport();
+        }
+
+        function viewSolutions() {
+            switchScreen('solutions-screen');
+            let html = "";
+            currentQuestions.forEach((q, idx) => {
+                let uAns = userAnswers[idx];
+                let cAns = q.ans;
+                let badgeClass = "badge-grey";
+                let badgeText = "Unanswered";
+                let border = "5px solid #ccc";
+                if(uAns !== null) {
+                    if(uAns === cAns) { badgeClass = "badge-green"; badgeText = "Correct"; border = "5px solid green"; }
+                    else { badgeClass = "badge-red"; badgeText = "Wrong"; border = "5px solid red"; }
+                }
+                html += `<div class="sol-card" style="border-left:${border}"><div class="status-badge ${badgeClass}">${badgeText}</div><div style="font-weight:bold; margin-bottom:10px;">${idx+1}. ${q.q}</div>`;
+                q.opt.forEach((opt, i) => {
+                    let style = "background:white; color:black;";
+                    if(i === cAns) style = "background:#d4edda; color:#155724; border:1px solid green;"; 
+                    else if(i === uAns && i !== cAns) style = "background:#f8d7da; color:#721c24; border:1px solid red;";
+                    html += `<div class="sol-opt" style="${style}">${opt}</div>`;
+                });
+                html += `</div>`;
+            });
+            document.getElementById("sol-list").innerHTML = html;
+        }
+    </script>
+</body>
+</html>
